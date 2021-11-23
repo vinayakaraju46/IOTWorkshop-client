@@ -1,35 +1,59 @@
 <template>
   <v-row justify="center">
     <v-col cols="6">
-      <v-card height="300" width="400" class="mt-10 mb-10" elevation="2">
-        <v-card-text class="text-h5 mb-1"> Devicename: {{ DeviceName }} </v-card-text>
-        <v-row>
-          <v-col>
-
-          </v-col>
-        </v-row>
-        <v-row justify="center" align="center">
-          <v-col cols="4">
-            <v-switch v-model="switch1" color="success" class="pl-8"></v-switch>
-          </v-col>
-        </v-row>
-        
-      </v-card>
+      <v-row justify="center" v-for="(item, index) in devices" :key="index">
+        <v-col cols="3" align="center">
+          <p>Devicename: {{ item.deviceName }}</p>
+        </v-col>
+        <v-col cols="4">
+          <v-switch
+            :value="true"
+            :input-value="item.deviceState == 'ON' ? true : false"
+            @change="toggle(item.deviceName, item.deviceState)"
+            color="success"
+            class="pl-8"
+          ></v-switch>
+        </v-col>
+      </v-row>
     </v-col>
   </v-row>
 </template>
 
 <script>
+const axios = require("axios");
+
 export default {
   name: "switchComponent",
   data() {
     return {
       DeviceName: "",
       switch1: false,
+      body: {
+        MAC_ID: 1,
+      },
+      devices: [],
     };
   },
   mounted() {
-    
+    axios.post("http://localhost:5000/getDevice", this.body).then((data) => {
+      console.log(data, "received data");
+      this.devices = data.data.devices;
+      console.log(this.devices);
+    });
+  },
+  methods: {
+    toggle(deviceName, state) {
+      console.log(deviceName, "DeviceName", state);
+      axios.post("http://localhost:5000/changeState", {
+        MAC_ID: 1,
+        deviceName: deviceName,
+        deviceState: state == 'ON' ? 'OFF': 'ON'
+      }).then((data) => {
+      console.log(data, "received data");
+      this.devices = data.data.devices;
+      console.log(this.devices);
+    });
+    }
   }
 };
 </script>
